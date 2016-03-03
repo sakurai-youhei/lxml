@@ -123,8 +123,8 @@ def parse_text_ftplist(s):
             yield line[54:].strip()
 
 def parse_html_ftplist(s):
-    re_html = re.compile(r'<a\s+[^>^\s]*?href=["\'](.*?)["\']', re.I|re.M)
-    links = set(re_html.findall(s))
+    re_href = re.compile(r'<a\s+[^>^\s]*?href=["\'](.*?)["\']', re.I|re.M)
+    links = set(re_href.findall(s))
     for link in links:
         if not link.endswith('/'):
             yield link
