@@ -4,10 +4,10 @@ from distutils import log, sysconfig, version
 
 try:
     from urlparse import urlsplit, urljoin
-    from urllib import urlretrieve, urlopen
+    from urllib import urlretrieve, urlopen, unquote
 except ImportError:
     from urllib.parse import urlsplit, urljoin
-    from urllib.request import urlretrieve, urlopen
+    from urllib.request import urlretrieve, urlopen, unquote
 
 multi_make_options = []
 try:
@@ -123,11 +123,11 @@ def parse_text_ftplist(s):
             yield line[54:].strip()
 
 def parse_html_ftplist(s):
-    re_href = re.compile(r'<a\s+[^>^\s]*?href=["\'](.*?)["\']', re.I|re.M)
+    re_href = re.compile(r'<a\s+[^>^\s]*?href=["\'](.*?)[;\?"\']', re.I|re.M)
     links = set(re_href.findall(s))
     for link in links:
         if not link.endswith('/'):
-            yield link
+            yield unquote(link)
 
 def tryint(s):
     try:
