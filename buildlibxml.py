@@ -100,12 +100,18 @@ LIBICONV_LOCATION = 'ftp://ftp.gnu.org/pub/gnu/libiconv/'
 match_libfile_version = re.compile('^[^-]*-([.0-9-]+)[.].*').match
 
 def ftp_listdir(url):
-    import ftplib, posixpath
-    scheme, netloc, path, qs, fragment = urlsplit(url)
-    assert scheme.lower() == 'ftp'
-    server = ftplib.FTP(netloc)
-    server.login()
-    files = [posixpath.basename(fn) for fn in server.nlst(path)]
+    try:
+        from urllib.request import urlopen  # Python 3.x
+    except ImportError:
+        from urllib import urlopen  # Python 2.x
+    files = []
+    res = urlopen(url)
+    for line in res.read().decode('utf-8').splitlines():
+        if line.startswith('d'):
+            continue
+        else:
+            files.append(line[54:].strip())
+    res.close()
     return files
 
 def tryint(s):
