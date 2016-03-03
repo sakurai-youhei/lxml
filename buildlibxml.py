@@ -3,11 +3,11 @@ import tarfile
 from distutils import log, sysconfig, version
 
 try:
-    from urlparse import urlsplit, urljoin
-    from urllib import urlretrieve, urlopen, unquote
+    from urlparse import urlsplit, urljoin, unquote
+    from urllib import urlretrieve, urlopen
 except ImportError:
-    from urllib.parse import urlsplit, urljoin
-    from urllib.request import urlretrieve, urlopen, unquote
+    from urllib.parse import urlsplit, urljoin, unquote
+    from urllib.request import urlretrieve, urlopen
 
 multi_make_options = []
 try:
