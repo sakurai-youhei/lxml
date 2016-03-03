@@ -4,10 +4,10 @@ from distutils import log, sysconfig, version
 
 try:
     from urlparse import urlsplit, urljoin
-    from urllib import urlretrieve
+    from urllib import urlretrieve, urlopen
 except ImportError:
     from urllib.parse import urlsplit, urljoin
-    from urllib.request import urlretrieve
+    from urllib.request import urlretrieve, urlopen
 
 multi_make_options = []
 try:
@@ -100,19 +100,34 @@ LIBICONV_LOCATION = 'ftp://ftp.gnu.org/pub/gnu/libiconv/'
 match_libfile_version = re.compile('^[^-]*-([.0-9-]+)[.].*').match
 
 def ftp_listdir(url):
-    try:
-        from urllib.request import urlopen  # Python 3.x
-    except ImportError:
-        from urllib import urlopen  # Python 2.x
-    files = []
+    assert url.lower().startswith('ftp://')
+    from email.message import Message
     res = urlopen(url)
-    for line in res.read().decode('utf-8').splitlines():
-        if line.startswith('d'):
-            continue
-        else:
-            files.append(line[54:].strip())
+    content_type = res.headers.get('Content-Type')
+    if content_type:
+        msg = Message()
+        msg.add_header('Content-Type', content_type)
+        charset = msg.get_content_charset('utf-8')
+    else:
+        charset = 'utf-8'
+    if content_type and content_type.startswith('text/html'):
+        files = parse_html_ftplist(res.read().decode(charset))
+    else:
+        files = parse_text_ftplist(res.read().decode(charset))
     res.close()
     return files
+
+def parse_text_ftplist(s):
+    for line in s.splitlines():
+        if not line.startswith('d'):
+            yield line[54:].strip()
+
+def parse_html_ftplist(s):
+    re_html = re.compile(r'<a\s+[^>^\s]*?href=["\'](.*?)["\']', re.I|re.M)
+    links = set(re_html.findall(s))
+    for link in links:
+        if not link.endswith('/'):
+            yield link
 
 def tryint(s):
     try:
